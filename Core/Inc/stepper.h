@@ -11,12 +11,22 @@
 
 extern uint8_t stepperStates[8];
 
-void setStepperPin(uint8_t pin, uint8_t toggle);
+struct stepper{
+    GPIO_TypeDef *gpio;
 
-void setStepperState(uint8_t state);
+    uint8_t isMoving;
+    uint8_t direction;
+    uint16_t stepsLeft;
+    uint16_t pins[4];
+    int8_t state;
+};
 
-void moveStepper(uint16_t steps, uint8_t delay, uint8_t direction);
+void setStepperPin(uint8_t pin, uint8_t toggle, struct stepper *step);
 
-void clearStepperState(void);
+void setStepperState(uint8_t state, struct stepper *step);
+
+void moveStepper(uint16_t steps, uint8_t delay, uint8_t direction, struct stepper *step);
+
+void clearStepperState(struct stepper *step);
 
 #endif __STEPPER_H

@@ -14,61 +14,28 @@ uint8_t stepperStates[8] =
   0b1001  
 };
 
-void setStepperPin(uint8_t pin, uint8_t toggle){
-    switch (pin) {
-    case 0:
-      if (toggle == 0){
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);
-      }
-      if (toggle == 1){
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
-      }
-      break;
-    case 1:
-      if (toggle == 0){
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
-      }
-      if (toggle == 1){
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
-      }
-      break;
-    case 2:
-      if (toggle == 0){
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_RESET);
-      }
-      if (toggle == 1){
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET);
-      }
-      break;
-    case 3:
-      if (toggle == 0){
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET);
-      }
-      if (toggle == 1){
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);
-      }
-      break;
-  }
+void setStepperPin(uint8_t pin, uint8_t toggle, struct stepper *step){
+    HAL_GPIO_WritePin(step->gpio, step->pins[pin], toggle ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
-void setStepperState(uint8_t state){
+void setStepperState(uint8_t state, struct stepper *step){
     for (int i = 3; i >= 0; i--){
-        setStepperPin(i, (stepperStates[state] >> (i)) & 1U); 
+        setStepperPin(i, (stepperStates[state] >> (i)) & 1U, step); 
     }
 
 }
 
-void clearStepperState(void){
+void clearStepperState(struct stepper *step){
     for (int i = 3; i >= 0; i--){
-        setStepperPin(i, 0); 
+        setStepperPin(i, 0, step); 
     }
 }
 
-void moveStepper(uint16_t steps, uint8_t delay, uint8_t direction){
-    int8_t static state = RIGHT_DIRECTION ? 7 : 0;;
+void moveStepper(uint16_t steps, uint8_t delay, uint8_t direction, struct stepper *step){
+    int8_t static state = RIGHT_DIRECTION ? 7 : 0; // <- TODO: FIX
 
     for (int i = 0; i < steps; i++){
-        setStepperState(state);
+        setStepperState(state, step);
         HAL_Delay(delay);
 
         if (direction == LEFT_DIRECTION){
@@ -87,5 +54,5 @@ void moveStepper(uint16_t steps, uint8_t delay, uint8_t direction){
 
     
     }
-    clearStepperState();
+    clearStepperState(step);
 }
