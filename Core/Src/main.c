@@ -81,6 +81,16 @@ int main(void)
 
   /* USER CODE BEGIN Init */
 
+  struct stepper step1;
+  step1.gpio = GPIOC;
+  step1.direction = RIGHT_DIRECTION;
+  step1.isMoving = 0;
+  step1.pins[0] = GPIO_PIN_5;
+  step1.pins[1] = GPIO_PIN_6;
+  step1.pins[2] = GPIO_PIN_8;
+  step1.pins[3] = GPIO_PIN_9;
+  step1.state = 0;
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -106,17 +116,6 @@ int main(void)
     /* USER CODE BEGIN 3 */
       //setStepperState(7);
       HAL_Delay(1000);
-      struct stepper step1;
-      step1.gpio = GPIOC;
-      step1.direction = RIGHT_DIRECTION;
-      step1.isMoving = 0;
-      step1.pins[0] = GPIO_PIN_5;
-      step1.pins[1] = GPIO_PIN_6;
-      step1.pins[2] = GPIO_PIN_8;
-      step1.pins[3] = GPIO_PIN_9;
-      step1.state = 0;
-
-
       moveStepper(STEPPER_360, 1, RIGHT_DIRECTION, &step1);
 
   }
