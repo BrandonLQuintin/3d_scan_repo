@@ -32,20 +32,26 @@ void clearStepperState(struct stepper *step){
 }
 
 void moveStepper(uint16_t steps, uint8_t delay, uint8_t direction, struct stepper *step){
-    int8_t static state = RIGHT_DIRECTION ? 7 : 0; // <- TODO: FIX
+    int8_t static state;
+    if (direction == RIGHT_DIRECTION){
+        state = 0;
+    }
+    if (direction == LEFT_DIRECTION){
+        state = 7;
+    }
 
     for (int i = 0; i < steps; i++){
         setStepperState(state, step);
         HAL_Delay(delay);
 
-        if (direction == LEFT_DIRECTION){
+        if (direction == RIGHT_DIRECTION){
             state += 1;
             if (state > 7){
                 state = 0;
             }
         }
 
-        if (direction == RIGHT_DIRECTION){
+        if (direction == LEFT_DIRECTION){
             state -= 1;
             if (state < 0){
                 state = 7;
