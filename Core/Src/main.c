@@ -115,6 +115,10 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
       //setStepperState(7);
+      step1.direction = RIGHT_DIRECTION;
+      HAL_Delay(1000);
+      moveStepper(STEPPER_360, 1, step1.direction, &step1);
+      step1.direction = LEFT_DIRECTION;
       HAL_Delay(1000);
       moveStepper(STEPPER_360, 1, step1.direction, &step1);
 
