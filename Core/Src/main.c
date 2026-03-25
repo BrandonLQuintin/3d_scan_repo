@@ -18,13 +18,12 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "stepper.h"
-#include "stm32f446xx.h"
-#include "stm32f4xx_hal_gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stepper.h"
+#include "stm32f446xx.h"
+#include "stm32f4xx_hal_gpio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -85,10 +84,10 @@ int main(void)
   step1.gpio = GPIOC;
   step1.direction = RIGHT_DIRECTION;
   step1.isMoving = 0;
-  step1.pins[0] = GPIO_PIN_5;
-  step1.pins[1] = GPIO_PIN_6;
-  step1.pins[2] = GPIO_PIN_8;
-  step1.pins[3] = GPIO_PIN_9;
+  step1.pins[0] = GPIO_PIN_0;
+  step1.pins[1] = GPIO_PIN_1;
+  step1.pins[2] = GPIO_PIN_2;
+  step1.pins[3] = GPIO_PIN_3;
   step1.state = 0;
 
   /* USER CODE END Init */
@@ -229,10 +228,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PC5 PC6 PC8 PC9 */
-  GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_8|GPIO_PIN_9;
+  /*Configure GPIO pins : PC0 PC1 PC2 PC3 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
