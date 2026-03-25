@@ -47,10 +47,6 @@ set(STM32_Drivers_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c
 )
 
-set(Custom_Src
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/stepper.c
-)
-
 # Drivers Midllewares
 
 
@@ -78,7 +74,6 @@ target_link_libraries(STM32_Drivers PUBLIC stm32cubemx)
 
 # Add STM32CubeMX generated application sources to the project
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE ${MX_Application_Src})
-target_sources(${CMAKE_PROJECT_NAME} PRIVATE ${Custom_Src})
 
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE ${MX_LINK_DIRS})
