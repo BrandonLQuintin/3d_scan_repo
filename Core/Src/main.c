@@ -24,6 +24,7 @@
 #include "stepper.h"
 #include "stm32f446xx.h"
 #include "stm32f4xx_hal_gpio.h"
+#include "../../Drivers/OV7670/OV7670.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,7 +53,8 @@ TIM_HandleTypeDef htim1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+uint32_t frame_buffer[OV7670_QQVGA_WIDTH * OV7670_QQVGA_HEIGHT/2];
+volatile uint8_t new_capture = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -64,7 +66,7 @@ static void MX_DCMI_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+static void onFrameCallback();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -118,7 +120,15 @@ int main(void)
   MX_I2C2_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start_IT(&htim1);
+  HAL_GPIO_WritePin(CAMERA_RESET_GPIO_Port, CAMERA_RESET_Pin, GPIO_PIN_RESET); // Turn on camera
+  ov7670_init(&hdcmi, &hdma_dcmi, &hi2c2);
+
+  ov7670_config(OV7670_MODE_QQVGA_RGB565);
+  ov7670_registerCallback(NULL, NULL, &onFrameCallback);
+
+  //ov7670_startCap(OV7670_CAP_SINGLE_FRAME, (uint32_t)frame_buffer);
+  uint8_t pid = 0;
+  ov7670_read(0x0A, &pid);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -128,13 +138,22 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-      //setStepperState(7);
+
+    ov7670_startCap(OV7670_CAP_SINGLE_FRAME, (uint32_t)frame_buffer);
+    while (!new_capture);
+    new_capture = 0;
+
+    //uint8_t sync_header[4] = {0xFF, 0xAA, 0xFF, 0xAA};
+    //HAL_UART_Transmit(&huart2, sync_header, 4, 100);
+    HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer, (OV7670_QQVGA_WIDTH * OV7670_QQVGA_HEIGHT * 2), HAL_MAX_DELAY);
+    /*
       step1.direction = RIGHT_DIRECTION;
       HAL_Delay(1000);
       moveStepper(STEPPER_360, 1, step1.direction, &step1);
       step1.direction = LEFT_DIRECTION;
       HAL_Delay(1000);
       moveStepper(STEPPER_360, 1, step1.direction, &step1);
+    */
 
   }
   /* USER CODE END 3 */
@@ -200,7 +219,7 @@ static void MX_DCMI_Init(void)
   hdcmi.Instance = DCMI;
   hdcmi.Init.SynchroMode = DCMI_SYNCHRO_HARDWARE;
   hdcmi.Init.PCKPolarity = DCMI_PCKPOLARITY_RISING;
-  hdcmi.Init.VSPolarity = DCMI_VSPOLARITY_LOW;
+  hdcmi.Init.VSPolarity = DCMI_VSPOLARITY_HIGH;
   hdcmi.Init.HSPolarity = DCMI_HSPOLARITY_LOW;
   hdcmi.Init.CaptureRate = DCMI_CR_ALL_FRAME;
   hdcmi.Init.ExtendedDataMode = DCMI_EXTEND_DATA_8B;
@@ -392,7 +411,9 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+static void onFrameCallback(){
+  new_capture = 1;
+}
 /* USER CODE END 4 */
 
 /**
