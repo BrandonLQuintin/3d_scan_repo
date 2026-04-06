@@ -32,6 +32,8 @@ static uint32_t s_currentV;
 static uint8_t capture = 0;
 static uint8_t imgMode = OV7670_MODE_QVGA_RGB565;
 
+uint16_t dcmi_currentY = 0;
+
 /*** Internal Function Declarations ***/
 //static HAL_StatusTypeDef ov7670_write(uint8_t regAddr, uint8_t data);
 //static HAL_StatusTypeDef ov7670_read(uint8_t regAddr, uint8_t *data);
@@ -84,19 +86,23 @@ HAL_StatusTypeDef ov7670_config(uint8_t mode){
   return HAL_OK;
 }
 
+HAL_StatusTypeDef ov7670_configCropRegion(DCMI_HandleTypeDef* dcmi, uint16_t y_pos){
+  HAL_DCMI_ConfigCrop(dcmi,0u,y_pos,(OV7670_QQVGA_WIDTH * 2) - 1,0);
+  return HAL_OK;
+}
+
+
 // Capture modes are OV7670_CAP_SINGLE_FRAME or OV7670_CAP_CONTINUOUS
 // Image modes are OV7670_MODE_QVGA_RGB565 or OV7670_MODE_QVGA_YUV
 HAL_StatusTypeDef ov7670_startCap(uint32_t capMode, uint32_t destAddress){
-
 	ov7670_stopCap();
 	if (capMode == OV7670_CAP_CONTINUOUS) {
-		/* note: continuous mode automatically invokes DCMI, but DMA needs to be invoked manually */
 		s_destAddressForContiuousMode = destAddress;
 		HAL_DCMI_Start_DMA(sp_hdcmi, DCMI_MODE_CONTINUOUS, destAddress, OV7670_QVGA_WIDTH * OV7670_QVGA_HEIGHT/imgMode);
 	} else if (capMode == OV7670_CAP_SINGLE_FRAME) {
 		s_destAddressForContiuousMode = 0;
 		capture = 1;
-		HAL_DCMI_Start_DMA(sp_hdcmi, DCMI_MODE_SNAPSHOT, destAddress, OV7670_QVGA_WIDTH * OV7670_QVGA_HEIGHT/imgMode);
+		HAL_DCMI_Start_DMA(sp_hdcmi, DCMI_MODE_SNAPSHOT, destAddress, OV7670_QQVGA_WIDTH / 2);
 	}
 
 	return HAL_OK;
@@ -104,7 +110,7 @@ HAL_StatusTypeDef ov7670_startCap(uint32_t capMode, uint32_t destAddress){
 
 HAL_StatusTypeDef ov7670_stopCap(){
   HAL_DCMI_Stop(sp_hdcmi);
-//  HAL_Delay(30);
+  HAL_Delay(30);
   return HAL_OK;
 }
 
@@ -120,8 +126,13 @@ void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi){
   if(s_destAddressForContiuousMode != 0) {
     HAL_DMA_Start_IT(hdcmi->DMA_Handle, (uint32_t)&hdcmi->Instance->DR, s_destAddressForContiuousMode, OV7670_QVGA_WIDTH * OV7670_QVGA_HEIGHT/2);
   }
+
   s_currentV++;
   s_currentH = 0;
+  dcmi_currentY = s_currentV % OV7670_QQVGA_HEIGHT;
+  if (dcmi_currentY == OV7670_QQVGA_HEIGHT - 1){
+    int volatile test = 0;
+  }
 }
 
 void HAL_DCMI_VsyncEventCallback(DCMI_HandleTypeDef *hdcmi){

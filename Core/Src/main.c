@@ -140,12 +140,17 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
     ov7670_startCap(OV7670_CAP_SINGLE_FRAME, (uint32_t)frame_buffer);
-    while (!new_capture);
+    uint32_t timeout = HAL_GetTick();
+    while (!new_capture) {
+      if (HAL_GetTick() - timeout > 500) {
+        HAL_DCMI_Stop(&hdcmi);
+        ov7670_startCap(OV7670_CAP_SINGLE_FRAME, (uint32_t)frame_buffer);
+        timeout = HAL_GetTick();
+      }
+    }
     new_capture = 0;
-
-    //uint8_t sync_header[4] = {0xFF, 0xAA, 0xFF, 0xAA};
-    //HAL_UART_Transmit(&huart2, sync_header, 4, 100);
-    HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer, (OV7670_QQVGA_WIDTH * OV7670_QQVGA_HEIGHT * 2), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer, (OV7670_QQVGA_WIDTH * 2), HAL_MAX_DELAY);
+    ov7670_configCropRegion(&hdcmi, dcmi_currentY);
     /*
       step1.direction = RIGHT_DIRECTION;
       HAL_Delay(1000);
@@ -233,7 +238,8 @@ static void MX_DCMI_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN DCMI_Init 2 */
-
+  HAL_DCMI_EnableCrop(&hdcmi);
+  ov7670_configCropRegion(&hdcmi, 0);
   /* USER CODE END DCMI_Init 2 */
 
 }
