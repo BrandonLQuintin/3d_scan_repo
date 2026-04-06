@@ -86,8 +86,8 @@ HAL_StatusTypeDef ov7670_config(uint8_t mode){
   return HAL_OK;
 }
 
-HAL_StatusTypeDef ov7670_configCropRegion(DCMI_HandleTypeDef* dcmi, uint16_t y_pos){
-  HAL_DCMI_ConfigCrop(dcmi,0u,y_pos,(RESOLUTION_X * 2) - 1,0);
+HAL_StatusTypeDef ov7670_configCropRegion(DCMI_HandleTypeDef* dcmi, uint16_t y_pos, uint16_t height){
+  HAL_DCMI_ConfigCrop(dcmi,0u,y_pos,(RESOLUTION_X * 2) - 1,height - 1);
   return HAL_OK;
 }
 
@@ -102,7 +102,7 @@ HAL_StatusTypeDef ov7670_startCap(uint32_t capMode, uint32_t destAddress){
 	} else if (capMode == OV7670_CAP_SINGLE_FRAME) {
 		s_destAddressForContiuousMode = 0;
 		capture = 1;
-		HAL_DCMI_Start_DMA(sp_hdcmi, DCMI_MODE_SNAPSHOT, destAddress, RESOLUTION_X / 2);
+		HAL_DCMI_Start_DMA(sp_hdcmi, DCMI_MODE_SNAPSHOT, destAddress, RESOLUTION_X * (RESOLUTION_Y / 2) / 2);
 	}
 
 	return HAL_OK;
@@ -129,8 +129,7 @@ void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi){
 
   s_currentV++;
   s_currentH = 0;
-  dcmi_currentY = s_currentV % RESOLUTION_Y;
-  if (dcmi_currentY == RESOLUTION_Y - 1){
+  if (s_currentV % 2 == 0){
     int volatile test = 0;
   }
 }

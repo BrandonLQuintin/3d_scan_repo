@@ -32,14 +32,16 @@
 #define OV7670_QQVGA_WIDTH 160
 #define OV7670_QQVGA_HEIGHT 120
 
-#define RESOLUTION_X OV7670_QQVGA_WIDTH
-#define RESOLUTION_Y OV7670_QQVGA_HEIGHT
+#define RESOLUTION_X OV7670_QVGA_WIDTH
+#define RESOLUTION_Y OV7670_QVGA_HEIGHT
+
+#define DEFAULT_MODE OV7670_MODE_QVGA_RGB565
 
 extern uint16_t dcmi_currentY;
 
 HAL_StatusTypeDef ov7670_init(DCMI_HandleTypeDef *p_hdcmi, DMA_HandleTypeDef *p_hdma_dcmi, I2C_HandleTypeDef *p_hi2c);
 HAL_StatusTypeDef ov7670_config(uint8_t mode);
-HAL_StatusTypeDef ov7670_configCropRegion(DCMI_HandleTypeDef* dcmi, uint16_t y_pos);
+HAL_StatusTypeDef ov7670_configCropRegion(DCMI_HandleTypeDef* dcmi, uint16_t y_pos, uint16_t height);
 HAL_StatusTypeDef ov7670_startCap(uint32_t capMode, uint32_t destAddress);
 HAL_StatusTypeDef ov7670_stopCap();
 void ov7670_registerCallback(void (*cbHsync)(uint32_t h), void (*cbVsync)(uint32_t v), void (* cbFrame)());

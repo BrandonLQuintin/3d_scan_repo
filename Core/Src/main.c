@@ -53,7 +53,7 @@ TIM_HandleTypeDef htim1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint32_t frame_buffer[RESOLUTION_X * RESOLUTION_Y/2];
+uint32_t frame_buffer[RESOLUTION_X * (RESOLUTION_Y / 2) / 2];
 volatile uint8_t new_capture = 0;
 /* USER CODE END PV */
 
@@ -123,7 +123,7 @@ int main(void)
   HAL_GPIO_WritePin(CAMERA_RESET_GPIO_Port, CAMERA_RESET_Pin, GPIO_PIN_RESET); // Turn on camera
   ov7670_init(&hdcmi, &hdma_dcmi, &hi2c2);
 
-  ov7670_config(OV7670_MODE_QQVGA_RGB565);
+  ov7670_config(DEFAULT_MODE);
   ov7670_registerCallback(NULL, NULL, &onFrameCallback);
 
   //ov7670_startCap(OV7670_CAP_SINGLE_FRAME, (uint32_t)frame_buffer);
@@ -139,18 +139,23 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-    ov7670_startCap(OV7670_CAP_SINGLE_FRAME, (uint32_t)frame_buffer);
-    uint32_t timeout = HAL_GetTick();
-    while (!new_capture) {
-      if (HAL_GetTick() - timeout > 500) {
-        HAL_DCMI_Stop(&hdcmi);
-        ov7670_startCap(OV7670_CAP_SINGLE_FRAME, (uint32_t)frame_buffer);
-        timeout = HAL_GetTick();
+    for (uint16_t half = 0; half < 2; half++) {
+      uint16_t y_offset = half * (RESOLUTION_Y / 2);
+      ov7670_configCropRegion(&hdcmi, y_offset, RESOLUTION_Y / 2);
+      ov7670_startCap(OV7670_CAP_SINGLE_FRAME, (uint32_t)frame_buffer);
+      uint32_t timeout = HAL_GetTick();
+      while (!new_capture) {
+        if (HAL_GetTick() - timeout > 500) {
+          HAL_DCMI_Stop(&hdcmi);
+          ov7670_startCap(OV7670_CAP_SINGLE_FRAME, (uint32_t)frame_buffer);
+          timeout = HAL_GetTick();
+        }
       }
+      new_capture = 0;
+      uint32_t half_frame_bytes = RESOLUTION_X * (RESOLUTION_Y / 2) * 2;
+      HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer, (uint16_t)(half_frame_bytes / 2), HAL_MAX_DELAY);
+      HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer + (half_frame_bytes / 2), (uint16_t)(half_frame_bytes / 2), HAL_MAX_DELAY);
     }
-    new_capture = 0;
-    HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer, (RESOLUTION_X * 2), HAL_MAX_DELAY);
-    ov7670_configCropRegion(&hdcmi, dcmi_currentY);
     /*
       step1.direction = RIGHT_DIRECTION;
       HAL_Delay(1000);
@@ -239,7 +244,7 @@ static void MX_DCMI_Init(void)
   }
   /* USER CODE BEGIN DCMI_Init 2 */
   HAL_DCMI_EnableCrop(&hdcmi);
-  ov7670_configCropRegion(&hdcmi, 0);
+  ov7670_configCropRegion(&hdcmi, 0, RESOLUTION_Y / 2);
   /* USER CODE END DCMI_Init 2 */
 
 }
