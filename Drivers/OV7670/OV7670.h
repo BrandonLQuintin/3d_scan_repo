@@ -32,6 +32,9 @@
 #define OV7670_QQVGA_WIDTH 160
 #define OV7670_QQVGA_HEIGHT 120
 
+#define RESOLUTION_X OV7670_QQVGA_WIDTH
+#define RESOLUTION_Y OV7670_QQVGA_HEIGHT
+
 extern uint16_t dcmi_currentY;
 
 HAL_StatusTypeDef ov7670_init(DCMI_HandleTypeDef *p_hdcmi, DMA_HandleTypeDef *p_hdma_dcmi, I2C_HandleTypeDef *p_hi2c);

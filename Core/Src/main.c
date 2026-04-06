@@ -53,7 +53,7 @@ TIM_HandleTypeDef htim1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint32_t frame_buffer[OV7670_QQVGA_WIDTH * OV7670_QQVGA_HEIGHT/2];
+uint32_t frame_buffer[RESOLUTION_X * RESOLUTION_Y/2];
 volatile uint8_t new_capture = 0;
 /* USER CODE END PV */
 
@@ -149,7 +149,7 @@ int main(void)
       }
     }
     new_capture = 0;
-    HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer, (OV7670_QQVGA_WIDTH * 2), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer, (RESOLUTION_X * 2), HAL_MAX_DELAY);
     ov7670_configCropRegion(&hdcmi, dcmi_currentY);
     /*
       step1.direction = RIGHT_DIRECTION;
