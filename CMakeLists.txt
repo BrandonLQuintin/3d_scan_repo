@@ -46,6 +46,7 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/stepper.c
     Drivers/OV7670/OV7670.c
+    Drivers/OV7670/OV7670_math.c
 )
 
 # Add include paths

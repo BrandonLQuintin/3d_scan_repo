@@ -25,6 +25,7 @@
 #include "stm32f446xx.h"
 #include "stm32f4xx_hal_gpio.h"
 #include "../../Drivers/OV7670/OV7670.h"
+#include "../../Drivers/OV7670/OV7670_math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,8 +54,11 @@ TIM_HandleTypeDef htim1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+
+// Half-frame buffer: 320 pixels x 120 rows, 2 RGB565 pixels per uint32_t
 uint32_t frame_buffer[RESOLUTION_X * (RESOLUTION_Y / 2) / 2];
 volatile uint8_t new_capture = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -141,6 +145,7 @@ int main(void)
 
     for (uint16_t half = 0; half < 2; half++) {
       uint16_t y_offset = half * (RESOLUTION_Y / 2);
+      // we process half the image at a time, so the limited RAM could handle the full image.
       ov7670_configCropRegion(&hdcmi, y_offset, RESOLUTION_Y / 2);
       ov7670_startCap(OV7670_CAP_SINGLE_FRAME, (uint32_t)frame_buffer);
       uint32_t timeout = HAL_GetTick();
@@ -151,10 +156,13 @@ int main(void)
           timeout = HAL_GetTick();
         }
       }
+
+      ov7670_findBrightestPixels(frame_buffer);
+
       new_capture = 0;
-      uint32_t half_frame_bytes = RESOLUTION_X * (RESOLUTION_Y / 2) * 2;
-      HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer, (uint16_t)(half_frame_bytes / 2), HAL_MAX_DELAY);
-      HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer + (half_frame_bytes / 2), (uint16_t)(half_frame_bytes / 2), HAL_MAX_DELAY);
+      //uint32_t half_frame_bytes = RESOLUTION_X * (RESOLUTION_Y / 2) * 2;
+      //HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer, (uint16_t)(half_frame_bytes / 2), HAL_MAX_DELAY);
+      //HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer + (half_frame_bytes / 2), (uint16_t)(half_frame_bytes / 2), HAL_MAX_DELAY);
     }
     /*
       step1.direction = RIGHT_DIRECTION;
