@@ -129,9 +129,6 @@ void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi){
 
   s_currentV++;
   s_currentH = 0;
-  if (s_currentV % 2 == 0){
-    int volatile test = 0;
-  }
 }
 
 void HAL_DCMI_VsyncEventCallback(DCMI_HandleTypeDef *hdcmi){
