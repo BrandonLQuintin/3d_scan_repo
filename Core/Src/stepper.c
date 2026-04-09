@@ -14,51 +14,48 @@ uint8_t stepperStates[8] =
   0b1001  
 };
 
-void setStepperPin(uint8_t pin, uint8_t toggle, struct stepper *step){
+void setStepperPin(uint8_t pin, uint8_t toggle, stepper_t *step){
     HAL_GPIO_WritePin(step->gpio, step->pins[pin], toggle ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
-void setStepperState(uint8_t state, struct stepper *step){
+void setStepperState(uint8_t state, stepper_t *step){
     for (int i = 3; i >= 0; i--){
         setStepperPin(i, (stepperStates[state] >> (i)) & 1U, step); 
     }
 
 }
 
-void clearStepperState(struct stepper *step){
+void clearStepperState(stepper_t *step){
     for (int i = 3; i >= 0; i--){
         setStepperPin(i, 0, step); 
     }
 }
 
-void moveStepper(uint16_t steps, uint8_t delay, uint8_t direction, struct stepper *step){
-    int8_t static state;
+void moveStepper(uint16_t steps, uint8_t delay, uint8_t direction, stepper_t *step){
     if (direction == RIGHT_DIRECTION){
-        state = 0;
+        step->state = 0;
     }
     if (direction == LEFT_DIRECTION){
-        state = 7;
+        step->state = 7;
     }
 
     for (int i = 0; i < steps; i++){
-        setStepperState(state, step);
+        setStepperState(step->state, step);
         HAL_Delay(delay);
 
         if (direction == RIGHT_DIRECTION){
-            state += 1;
-            if (state > 7){
-                state = 0;
+            step->state += 1;
+            if (step->state > 7){
+                step->state = 0;
             }
         }
 
         if (direction == LEFT_DIRECTION){
-            state -= 1;
-            if (state < 0){
-                state = 7;
+            step->state -= 1;
+            if (step->state < 0){
+                step->state = 7;
             }
         }
-
-    
     }
     clearStepperState(step);
 }

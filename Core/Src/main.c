@@ -97,7 +97,7 @@ int main(void)
 
   /* USER CODE BEGIN Init */
 
-  struct stepper step1;
+  stepper_t step1;
   step1.gpio = GPIOC;
   step1.direction = RIGHT_DIRECTION;
   step1.isMoving = 0;

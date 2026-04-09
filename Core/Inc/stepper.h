@@ -1,5 +1,5 @@
-#ifndef __STEPPER_H
-#define __STEPPER_H
+#ifndef STEPPER_H_
+#define STEPPER_H_
 
 #include <stdint.h>
 #include "main.h"
@@ -11,7 +11,7 @@
 
 extern uint8_t stepperStates[8];
 
-struct stepper{
+typedef struct stepper{
     GPIO_TypeDef *gpio;
 
     uint8_t isMoving;
@@ -19,14 +19,14 @@ struct stepper{
     uint16_t stepsLeft;
     uint16_t pins[4];
     int8_t state;
-};
+} stepper_t;
 
-void setStepperPin(uint8_t pin, uint8_t toggle, struct stepper *step);
+void setStepperPin(uint8_t pin, uint8_t toggle, stepper_t *step);
 
-void setStepperState(uint8_t state, struct stepper *step);
+void setStepperState(uint8_t state, stepper_t *step);
 
-void moveStepper(uint16_t steps, uint8_t delay, uint8_t direction, struct stepper *step);
+void moveStepper(uint16_t steps, uint8_t delay, uint8_t direction, stepper_t *step);
 
-void clearStepperState(struct stepper *step);
+void clearStepperState(stepper_t *step);
 
-#endif __STEPPER_H
+#endif STEPPER_H_
