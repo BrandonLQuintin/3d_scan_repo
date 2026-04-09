@@ -143,6 +143,10 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
+    // magic keyword to sync with my other repo 3d_scan_repo. 
+    // 0xDEEEEEAD will be the start to the entire frame buffer for the other repo to render the image.
+    const uint32_t sync_magic = 0xDEEEEEAD;
+    HAL_UART_Transmit(&huart2, (uint8_t *)&sync_magic, 4, HAL_MAX_DELAY);
     for (uint16_t half = 0; half < 2; half++) {
       uint16_t y_offset = half * (RESOLUTION_Y / 2);
       // we process half the image at a time, so the limited RAM could handle the full image.
@@ -160,9 +164,9 @@ int main(void)
       ov7670_findBrightestPixels(frame_buffer);
 
       new_capture = 0;
-      //uint32_t half_frame_bytes = RESOLUTION_X * (RESOLUTION_Y / 2) * 2;
-      //HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer, (uint16_t)(half_frame_bytes / 2), HAL_MAX_DELAY);
-      //HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer + (half_frame_bytes / 2), (uint16_t)(half_frame_bytes / 2), HAL_MAX_DELAY);
+      uint32_t half_frame_bytes = RESOLUTION_X * (RESOLUTION_Y / 2) * 2;
+      HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer, (uint16_t)(half_frame_bytes / 2), HAL_MAX_DELAY);
+      HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer + (half_frame_bytes / 2), (uint16_t)(half_frame_bytes / 2), HAL_MAX_DELAY);
     }
     /*
       step1.direction = RIGHT_DIRECTION;
