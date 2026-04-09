@@ -152,6 +152,7 @@ int main(void)
       // we process half the image at a time, so the limited RAM could handle the full image.
       ov7670_configCropRegion(&hdcmi, y_offset, RESOLUTION_Y / 2);
       ov7670_startCap(OV7670_CAP_SINGLE_FRAME, (uint32_t)frame_buffer);
+
       uint32_t timeout = HAL_GetTick();
       while (!new_capture) {
         if (HAL_GetTick() - timeout > 500) {
@@ -161,13 +162,14 @@ int main(void)
         }
       }
 
-      ov7670_findBrightestPixels(frame_buffer);
-
       new_capture = 0;
       uint32_t half_frame_bytes = RESOLUTION_X * (RESOLUTION_Y / 2) * 2;
       HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer, (uint16_t)(half_frame_bytes / 2), HAL_MAX_DELAY);
       HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer + (half_frame_bytes / 2), (uint16_t)(half_frame_bytes / 2), HAL_MAX_DELAY);
+
+      ov7670_findBrightestPixels(frame_buffer, half);
     }
+    HAL_UART_Transmit(&huart2, (uint8_t*)brightest_pixels, (uint16_t)(RESOLUTION_Y * sizeof(uint16_t)), HAL_MAX_DELAY);
     /*
       step1.direction = RIGHT_DIRECTION;
       HAL_Delay(1000);

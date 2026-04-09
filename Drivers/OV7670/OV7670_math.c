@@ -1,7 +1,7 @@
 #include "OV7670_math.h"
 #include "OV7670.h"
 
-uint8_t brightest_pixels[OV7670_QVGA_HEIGHT / 2] = {0};
+uint16_t brightest_pixels[OV7670_QVGA_HEIGHT] = {0};
 
 static uint16_t getPixel(uint32_t* frameBuffer, int x, int y) {
     int pixel_index = y * RESOLUTION_X + x;
@@ -15,7 +15,8 @@ static uint8_t getRed(uint16_t pixel) {
     return (pixel >> 11) & 0x1F;
 }
 
-void ov7670_findBrightestPixels(uint32_t* frameBuffer){
+void ov7670_findBrightestPixels(uint32_t* frameBuffer, bool isSecondHalf){
+    uint8_t offset = (isSecondHalf) ? RESOLUTION_Y / 2 : 0;
     for (int y = 0; y < RESOLUTION_Y / 2; y++){
         uint8_t maxRed = 0;
         uint8_t bestX = 0;
@@ -26,6 +27,6 @@ void ov7670_findBrightestPixels(uint32_t* frameBuffer){
                 bestX = x;
             }
         }
-        brightest_pixels[y] = bestX;
+        brightest_pixels[offset + y] = bestX;
     }
 }
