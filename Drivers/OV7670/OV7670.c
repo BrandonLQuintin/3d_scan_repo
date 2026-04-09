@@ -73,7 +73,7 @@ HAL_StatusTypeDef ov7670_config(uint8_t mode){
 
 	  imgMode = OV7670_MODE_QVGA_YUV;
   }
-  else if(mode == OV7670_MODE_QQVGA_RGB565){
+  else if(mode == OV7670_MODE_QQVGA){
 	  ov7670_write(0x12, 0x14); // QVGA, RGB
 	  ov7670_write(0x40, 0xd0); // RGB565, 00-FF
 	  ov7670_write(0x3E, 0x1a); // divide by 4

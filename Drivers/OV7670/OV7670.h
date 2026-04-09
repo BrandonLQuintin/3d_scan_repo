@@ -19,8 +19,7 @@
 // The following two values are for convenience in startCap function.
 #define OV7670_MODE_QVGA_RGB565 2
 #define OV7670_MODE_QVGA_YUV    4
-#define OV7670_MODE_QQVGA_YUV   8
-#define OV7670_MODE_QQVGA_RGB565 8
+#define OV7670_MODE_QQVGA   8
 
 #define OV7670_CAP_CONTINUOUS   0
 #define OV7670_CAP_SINGLE_FRAME 1
