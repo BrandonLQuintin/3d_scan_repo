@@ -19,7 +19,7 @@ void ov7670_findBrightestPixels(uint32_t* frameBuffer, bool isSecondHalf){
     uint8_t offset = (isSecondHalf) ? RESOLUTION_Y / 2 : 0;
     for (int y = 0; y < RESOLUTION_Y / 2; y++){
         uint8_t maxRed = 0;
-        uint8_t bestX = 0;
+        uint16_t bestX = 0;
         for (int x = 0; x < RESOLUTION_X; x++){
             uint8_t red = getRed(getPixel(frameBuffer, x, y));
             if (red > maxRed) {
