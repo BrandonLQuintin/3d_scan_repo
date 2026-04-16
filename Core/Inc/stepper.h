@@ -5,6 +5,7 @@
 #include "main.h"
 
 #define STEPPER_360 4098
+#define STEP_INCREMENT 100
 
 #define LEFT_DIRECTION 0
 #define RIGHT_DIRECTION 1
@@ -17,6 +18,7 @@ typedef struct stepper{
     uint8_t isMoving;
     uint8_t direction;
     uint16_t stepsLeft;
+    uint16_t totalStepCounter;
     uint16_t pins[4];
     int8_t state;
 } stepper_t;

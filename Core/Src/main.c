@@ -26,6 +26,7 @@
 #include "stm32f4xx_hal_gpio.h"
 #include "../../Drivers/OV7670/OV7670.h"
 #include "../../Drivers/OV7670/OV7670_math.h"
+#include <stdint.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,9 +56,13 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
+#define DISABLE_FRAME_BUFFER_UART 1
+
 // Half-frame buffer: 320 pixels x 120 rows, 2 RGB565 pixels per uint32_t
 uint32_t frame_buffer[RESOLUTION_X * (RESOLUTION_Y / 2) / 2];
 volatile uint8_t new_capture = 0;
+volatile uint8_t ack_buffer[1];
+volatile bool ack_recieved = false;
 
 /* USER CODE END PV */
 
@@ -97,15 +102,16 @@ int main(void)
 
   /* USER CODE BEGIN Init */
 
-  stepper_t step1;
-  step1.gpio = GPIOC;
-  step1.direction = RIGHT_DIRECTION;
-  step1.isMoving = 0;
-  step1.pins[0] = GPIO_PIN_0;
-  step1.pins[1] = GPIO_PIN_1;
-  step1.pins[2] = GPIO_PIN_2;
-  step1.pins[3] = GPIO_PIN_3;
-  step1.state = 0;
+  stepper_t stepper;
+  stepper.gpio = GPIOC;
+  stepper.direction = RIGHT_DIRECTION;
+  stepper.isMoving = 0;
+  stepper.pins[0] = GPIO_PIN_0;
+  stepper.pins[1] = GPIO_PIN_1;
+  stepper.pins[2] = GPIO_PIN_2;
+  stepper.pins[3] = GPIO_PIN_3;
+  stepper.state = 0;
+  stepper.totalStepCounter = 0;
 
   /* USER CODE END Init */
 
@@ -124,6 +130,7 @@ int main(void)
   MX_I2C2_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+  HAL_UART_Receive_IT(&huart2, ack_buffer, 1);
   HAL_GPIO_WritePin(CAMERA_RESET_GPIO_Port, CAMERA_RESET_Pin, GPIO_PIN_RESET); // Turn on camera
   ov7670_init(&hdcmi, &hdma_dcmi, &hi2c2);
 
@@ -137,19 +144,24 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  while (!ack_recieved) {
+    const uint32_t sync_magic = 0xDEEEEEAD;
+    HAL_UART_Transmit(&huart2, (uint8_t *)&sync_magic, 4, HAL_MAX_DELAY);
+  }
+
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
-    // magic keyword to sync with my other repo 3d_scan_repo. 
-    // 0xDEEEEEAD will be the start to the entire frame buffer for the other repo to render the image.
-    const uint32_t sync_magic = 0xDEEEEEAD;
-    HAL_UART_Transmit(&huart2, (uint8_t *)&sync_magic, 4, HAL_MAX_DELAY);
+    if (!ack_recieved){
+      continue;
+    }
+
     for (uint16_t half = 0; half < 2; half++) {
       uint16_t y_offset = half * (RESOLUTION_Y / 2);
-      // we process half the image at a time, so the limited RAM could handle the full image.
       ov7670_configCropRegion(&hdcmi, y_offset, RESOLUTION_Y / 2);
       ov7670_startCap(OV7670_CAP_SINGLE_FRAME, (uint32_t)frame_buffer);
 
@@ -164,20 +176,17 @@ int main(void)
 
       new_capture = 0;
       uint32_t half_frame_bytes = RESOLUTION_X * (RESOLUTION_Y / 2) * 2;
+#if !DISABLE_FRAME_BUFFER_UART
       HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer, (uint16_t)(half_frame_bytes / 2), HAL_MAX_DELAY);
       HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer + (half_frame_bytes / 2), (uint16_t)(half_frame_bytes / 2), HAL_MAX_DELAY);
-
+#endif
       ov7670_findBrightestPixels(frame_buffer, half);
     }
     HAL_UART_Transmit(&huart2, (uint8_t*)brightest_pixels, (uint16_t)(RESOLUTION_Y * sizeof(uint16_t)), HAL_MAX_DELAY);
-    /*
-      step1.direction = RIGHT_DIRECTION;
-      HAL_Delay(1000);
-      moveStepper(STEPPER_360, 1, step1.direction, &step1);
-      step1.direction = LEFT_DIRECTION;
-      HAL_Delay(1000);
-      moveStepper(STEPPER_360, 1, step1.direction, &step1);
-    */
+    moveStepper(STEP_INCREMENT, 1, stepper.direction, &stepper);
+    stepper.totalStepCounter += STEP_INCREMENT;
+    HAL_UART_Transmit(&huart2, (uint8_t*)&stepper.totalStepCounter, sizeof(stepper.totalStepCounter), HAL_MAX_DELAY);
+    ack_recieved = false;
 
   }
   /* USER CODE END 3 */
@@ -438,6 +447,12 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 static void onFrameCallback(){
   new_capture = 1;
+}
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	HAL_UART_Receive_IT(&huart2, ack_buffer, 1);
+  if (*ack_buffer == 23){
+    ack_recieved = true;
+  }
 }
 /* USER CODE END 4 */
 
