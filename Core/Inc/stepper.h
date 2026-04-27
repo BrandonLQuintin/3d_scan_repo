@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "main.h"
 
-#define STEPPER_360 4098
+#define STEPPER_360 4076
 #define STEP_INCREMENT 25
 
 #define LEFT_DIRECTION 0
