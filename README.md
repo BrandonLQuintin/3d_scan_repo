@@ -1,6 +1,8 @@
 # 3D Scanner - STM32 Firmware
 
 STM32F446REで作ったレーザーライン3Dスキャナーの組み込みファームウェアです。OV7670カメラで画像を撮影し、各行で赤いレーザーラインを検出し、ステッパーモーターでターンテーブルを回転させ、結果をUARTでPCに送信して3D再構成を行います。
+<img width="4000" height="3000" alt="20260429_141256" src="https://github.com/user-attachments/assets/b4a0021b-8241-4249-97e8-2d31a01e6a6d" />
+
 
 ## ハードウェア
 
