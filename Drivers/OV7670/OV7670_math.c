@@ -20,10 +20,10 @@ static uint8_t getRed(uint16_t pixel) {
     return (pixel >> 11) & 0x1F;
 }
 
-static void compareRedPixels(RedPixelScans *input, uint8_t current_red_pixel, uint8_t current_x){
+static void compareRedPixels(RedPixelScans *input, uint8_t current_red_pixel, uint16_t current_x){
     if (current_red_pixel > input->leastBrightestRed){
         input->leastBrightestRed = current_red_pixel;
-        for (int i = sizeof(input->bestX) / sizeof(input->bestX[0]); i >= 1; i--) {
+        for (int i = (sizeof(input->bestX) / sizeof(input->bestX[0])) - 1; i >= 1; i--) {
             input->bestX[i] = input->bestX[i - 1];
         }
         input->bestX[0] = current_x;
