@@ -188,6 +188,10 @@ int main(void)
     HAL_UART_Transmit(&huart2, (uint8_t*)&stepper.totalStepCounter, sizeof(stepper.totalStepCounter), HAL_MAX_DELAY);
     ack_recieved = false;
 
+    if (stepper.totalStepCounter > STEPPER_360){
+      break;
+    }
+
   }
   /* USER CODE END 3 */
 }
