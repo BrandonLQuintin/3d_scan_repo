@@ -40,10 +40,10 @@ extern uint16_t dcmi_currentY;
 
 HAL_StatusTypeDef ov7670_init(DCMI_HandleTypeDef *p_hdcmi, DMA_HandleTypeDef *p_hdma_dcmi, I2C_HandleTypeDef *p_hi2c);
 HAL_StatusTypeDef ov7670_config(uint8_t mode);
-HAL_StatusTypeDef ov7670_configCropRegion(DCMI_HandleTypeDef* dcmi, uint16_t y_pos, uint16_t height);
-HAL_StatusTypeDef ov7670_startCap(uint32_t capMode, uint32_t destAddress);
-HAL_StatusTypeDef ov7670_stopCap();
-void ov7670_registerCallback(void (*cbHsync)(uint32_t h), void (*cbVsync)(uint32_t v), void (* cbFrame)());
+HAL_StatusTypeDef ov7670_config_crop_region(DCMI_HandleTypeDef *dcmi, uint16_t y_pos, uint16_t height);
+HAL_StatusTypeDef ov7670_start_cap(uint32_t capMode, uint32_t destAddress);
+HAL_StatusTypeDef ov7670_stop_cap(void);
+void ov7670_register_callback(void (*cbHsync)(uint32_t h), void (*cbVsync)(uint32_t v), void (*cbFrame)(void));
 
 HAL_StatusTypeDef ov7670_write(uint8_t regAddr, uint8_t data);
 HAL_StatusTypeDef ov7670_read(uint8_t regAddr, uint8_t *data);

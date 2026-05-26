@@ -62,7 +62,7 @@ UART_HandleTypeDef huart2;
 uint32_t frame_buffer[RESOLUTION_X * (RESOLUTION_Y / 2) / 2];
 volatile uint8_t new_capture = 0;
 volatile uint8_t ack_buffer[1];
-volatile bool ack_recieved = false;
+volatile bool ack_received = false;
 
 /* USER CODE END PV */
 
@@ -75,7 +75,7 @@ static void MX_DCMI_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-static void onFrameCallback();
+static void on_frame_callback(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -105,13 +105,13 @@ int main(void)
   stepper_t stepper;
   stepper.gpio = GPIOC;
   stepper.direction = RIGHT_DIRECTION;
-  stepper.isMoving = 0;
+  stepper.is_moving = 0;
   stepper.pins[0] = GPIO_PIN_0;
   stepper.pins[1] = GPIO_PIN_1;
   stepper.pins[2] = GPIO_PIN_2;
   stepper.pins[3] = GPIO_PIN_3;
   stepper.state = 0;
-  stepper.totalStepCounter = 0;
+  stepper.total_step_counter = 0;
 
   /* USER CODE END Init */
 
@@ -135,7 +135,7 @@ int main(void)
   ov7670_init(&hdcmi, &hdma_dcmi, &hi2c2);
 
   ov7670_config(DEFAULT_MODE);
-  ov7670_registerCallback(NULL, NULL, &onFrameCallback);
+  ov7670_register_callback(NULL, NULL, &on_frame_callback);
 
   //ov7670_startCap(OV7670_CAP_SINGLE_FRAME, (uint32_t)frame_buffer);
   uint8_t pid = 0;
@@ -145,7 +145,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  while (!ack_recieved) {
+  while (!ack_received) {
     const uint32_t sync_magic = 0xDEEEEEAD;
     HAL_UART_Transmit(&huart2, (uint8_t *)&sync_magic, 4, HAL_MAX_DELAY);
   }
@@ -156,20 +156,20 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-    if (!ack_recieved){
+    if (!ack_received){
       continue;
     }
 
     for (uint16_t half = 0; half < 2; half++) {
       uint16_t y_offset = half * (RESOLUTION_Y / 2);
-      ov7670_configCropRegion(&hdcmi, y_offset, RESOLUTION_Y / 2);
-      ov7670_startCap(OV7670_CAP_SINGLE_FRAME, (uint32_t)frame_buffer);
+      ov7670_config_crop_region(&hdcmi, y_offset, RESOLUTION_Y / 2);
+      ov7670_start_cap(OV7670_CAP_SINGLE_FRAME, (uint32_t)frame_buffer);
 
       uint32_t timeout = HAL_GetTick();
       while (!new_capture) {
         if (HAL_GetTick() - timeout > 500) {
           HAL_DCMI_Stop(&hdcmi);
-          ov7670_startCap(OV7670_CAP_SINGLE_FRAME, (uint32_t)frame_buffer);
+          ov7670_start_cap(OV7670_CAP_SINGLE_FRAME, (uint32_t)frame_buffer);
           timeout = HAL_GetTick();
         }
       }
@@ -180,15 +180,15 @@ int main(void)
       HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer, (uint16_t)(half_frame_bytes / 2), HAL_MAX_DELAY);
       HAL_UART_Transmit(&huart2, (uint8_t*)frame_buffer + (half_frame_bytes / 2), (uint16_t)(half_frame_bytes / 2), HAL_MAX_DELAY);
 #endif
-      ov7670_findBrightestPixels(frame_buffer, half);
+      ov7670_find_brightest_pixels(frame_buffer, half);
     }
     HAL_UART_Transmit(&huart2, (uint8_t*)brightest_pixels, (uint16_t)(RESOLUTION_Y * sizeof(uint16_t)), HAL_MAX_DELAY);
-    moveStepper(STEP_INCREMENT, 1, stepper.direction, &stepper);
-    stepper.totalStepCounter += STEP_INCREMENT;
-    HAL_UART_Transmit(&huart2, (uint8_t*)&stepper.totalStepCounter, sizeof(stepper.totalStepCounter), HAL_MAX_DELAY);
-    ack_recieved = false;
+    move_stepper(STEP_INCREMENT, 1, stepper.direction, &stepper);
+    stepper.total_step_counter += STEP_INCREMENT;
+    HAL_UART_Transmit(&huart2, (uint8_t *)&stepper.total_step_counter, sizeof(stepper.total_step_counter), HAL_MAX_DELAY);
+    ack_received = false;
 
-    if (stepper.totalStepCounter > STEPPER_360){
+    if (stepper.total_step_counter > STEPPER_360) {
       break;
     }
 
@@ -271,7 +271,7 @@ static void MX_DCMI_Init(void)
   }
   /* USER CODE BEGIN DCMI_Init 2 */
   HAL_DCMI_EnableCrop(&hdcmi);
-  ov7670_configCropRegion(&hdcmi, 0, RESOLUTION_Y / 2);
+  ov7670_config_crop_region(&hdcmi, 0, RESOLUTION_Y / 2);
   /* USER CODE END DCMI_Init 2 */
 
 }
@@ -449,13 +449,13 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-static void onFrameCallback(){
+static void on_frame_callback(void) {
   new_capture = 1;
 }
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	HAL_UART_Receive_IT(&huart2, ack_buffer, 1);
   if (*ack_buffer == 23){
-    ack_recieved = true;
+    ack_received = true;
   }
 }
 /* USER CODE END 4 */

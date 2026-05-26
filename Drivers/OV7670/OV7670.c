@@ -23,7 +23,7 @@
 static DCMI_HandleTypeDef *sp_hdcmi;
 static DMA_HandleTypeDef  *sp_hdma_dcmi;
 static I2C_HandleTypeDef  *sp_hi2c;
-static uint32_t    s_destAddressForContiuousMode;
+static uint32_t s_dest_address_for_continuous_mode;
 static void (* s_cbHsync)(uint32_t h);
 static void (* s_cbVsync)(uint32_t v);
 static void (* s_cbFrame)();
@@ -43,7 +43,7 @@ HAL_StatusTypeDef ov7670_init(DCMI_HandleTypeDef *p_hdcmi, DMA_HandleTypeDef *p_
   sp_hdcmi     = p_hdcmi;
   sp_hdma_dcmi = p_hdma_dcmi;
   sp_hi2c      = p_hi2c;
-  s_destAddressForContiuousMode = 0;
+  s_dest_address_for_continuous_mode = 0;
 
   HAL_GPIO_WritePin(CAMERA_RESET_GPIO_Port, CAMERA_RESET_Pin, GPIO_PIN_RESET);
   HAL_Delay(100);
@@ -59,8 +59,8 @@ HAL_StatusTypeDef ov7670_init(DCMI_HandleTypeDef *p_hdcmi, DMA_HandleTypeDef *p_
   return HAL_OK;
 }
 
-HAL_StatusTypeDef ov7670_config(uint8_t mode){
-  ov7670_stopCap();
+HAL_StatusTypeDef ov7670_config(uint8_t mode) {
+  ov7670_stop_cap();
   ov7670_write(0x12, 0x80);  // RESET
   HAL_Delay(30);
   for(int i = 0; OV7670_reg[i][0] != REG_EOT; i++) {
@@ -86,7 +86,7 @@ HAL_StatusTypeDef ov7670_config(uint8_t mode){
   return HAL_OK;
 }
 
-HAL_StatusTypeDef ov7670_configCropRegion(DCMI_HandleTypeDef* dcmi, uint16_t y_pos, uint16_t height){
+HAL_StatusTypeDef ov7670_config_crop_region(DCMI_HandleTypeDef *dcmi, uint16_t y_pos, uint16_t height) {
   HAL_DCMI_ConfigCrop(dcmi,0u,y_pos,(RESOLUTION_X * 2) - 1,height - 1);
   return HAL_OK;
 }
@@ -94,13 +94,13 @@ HAL_StatusTypeDef ov7670_configCropRegion(DCMI_HandleTypeDef* dcmi, uint16_t y_p
 
 // Capture modes are OV7670_CAP_SINGLE_FRAME or OV7670_CAP_CONTINUOUS
 // Image modes are OV7670_MODE_QVGA_RGB565 or OV7670_MODE_QVGA_YUV
-HAL_StatusTypeDef ov7670_startCap(uint32_t capMode, uint32_t destAddress){
-	ov7670_stopCap();
+HAL_StatusTypeDef ov7670_start_cap(uint32_t capMode, uint32_t destAddress) {
+	ov7670_stop_cap();
 	if (capMode == OV7670_CAP_CONTINUOUS) {
-		s_destAddressForContiuousMode = destAddress;
+		s_dest_address_for_continuous_mode = destAddress;
 		HAL_DCMI_Start_DMA(sp_hdcmi, DCMI_MODE_CONTINUOUS, destAddress, OV7670_QVGA_WIDTH * OV7670_QVGA_HEIGHT/imgMode);
 	} else if (capMode == OV7670_CAP_SINGLE_FRAME) {
-		s_destAddressForContiuousMode = 0;
+		s_dest_address_for_continuous_mode = 0;
 		capture = 1;
 		HAL_DCMI_Start_DMA(sp_hdcmi, DCMI_MODE_SNAPSHOT, destAddress, RESOLUTION_X * (RESOLUTION_Y / 2) / 2);
 	}
@@ -108,13 +108,13 @@ HAL_StatusTypeDef ov7670_startCap(uint32_t capMode, uint32_t destAddress){
 	return HAL_OK;
 }
 
-HAL_StatusTypeDef ov7670_stopCap(){
+HAL_StatusTypeDef ov7670_stop_cap(void) {
   HAL_DCMI_Stop(sp_hdcmi);
   HAL_Delay(30);
   return HAL_OK;
 }
 
-void ov7670_registerCallback(void (*cbHsync)(uint32_t h), void (*cbVsync)(uint32_t v), void (*cbFrame)()){
+void ov7670_register_callback(void (*cbHsync)(uint32_t h), void (*cbVsync)(uint32_t v), void (*cbFrame)(void)) {
   s_cbHsync = cbHsync;
   s_cbVsync = cbVsync;
   s_cbFrame = cbFrame;
@@ -123,8 +123,8 @@ void ov7670_registerCallback(void (*cbHsync)(uint32_t h), void (*cbVsync)(uint32
 void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi){
 //  printf("FRAME %d\n", HAL_GetTick());
   if(s_cbFrame)s_cbFrame();
-  if(s_destAddressForContiuousMode != 0) {
-    HAL_DMA_Start_IT(hdcmi->DMA_Handle, (uint32_t)&hdcmi->Instance->DR, s_destAddressForContiuousMode, OV7670_QVGA_WIDTH * OV7670_QVGA_HEIGHT/2);
+  if(s_dest_address_for_continuous_mode != 0) {
+    HAL_DMA_Start_IT(hdcmi->DMA_Handle, (uint32_t)&hdcmi->Instance->DR, s_dest_address_for_continuous_mode, OV7670_QVGA_WIDTH * OV7670_QVGA_HEIGHT/2);
   }
 
   s_currentV++;

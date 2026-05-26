@@ -5,6 +5,6 @@
 
 extern uint16_t brightest_pixels[];
 
-void ov7670_findBrightestPixels(uint32_t* frameBuffer, bool isSecondHalf);
+void ov7670_find_brightest_pixels(uint32_t *frameBuffer, bool isSecondHalf);
 
 #endif
